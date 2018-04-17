@@ -54,19 +54,21 @@ Update the following lines:
 * port ```2200``` - update port with new value  
 * PermitRoolLogin ```no```  
 * ```sudo service ssh restart```   
+
 Finally we need to configure Firewall:  
 * ```sudo ufw allow 2200/tcp```  
 * ```sudo ufw allow 80/tcp```  
 * ```sudo ufw allow 123/udp```  
 * ```sudo ufw enable```  
 
-* ```sudo dpkg-reconfigure tzdata``` - change the timezone to UTC.  
+Change the timezone to UTC
+* ```sudo dpkg-reconfigure tzdata```   
 
 The steps above conclude setting up the linux server instance with grader account setup.
 
-##Install, configure & Launch the Application
+## Install, configure & Launch the Application
 
-###Install and configure Appahe:
+### Install and configure Appahe:
 * ```sudo apt-get install apache2```  
 We can test to ensure that Apache has been installed correctly by going to public ip page and seeing the Apache2 Ubuntu page
 
