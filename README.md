@@ -66,7 +66,7 @@ Change the timezone to UTC
 
 The steps above conclude setting up the linux server instance with grader account setup.
 
-## Install, configure & Launch the Application
+## Install, Configure & Launch the Application
 
 ### Install and configure Apache:
 * ```sudo apt-get install apache2```  
