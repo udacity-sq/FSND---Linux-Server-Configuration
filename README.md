@@ -68,41 +68,140 @@ The steps above conclude setting up the linux server instance with grader accoun
 
 ## Install, configure & Launch the Application
 
-### Install and configure Appahe:
+### Install and configure Apache:
 * ```sudo apt-get install apache2```  
 We can test to ensure that Apache has been installed correctly by going to public ip page and seeing the Apache2 Ubuntu page
 
 Since the Catalog Application was built using python3 we need to install the Python 3 mod_wsgi package
 * ```udo apt-get install libapache2-mod-wsgi-py3```
 * ```sudo en2smod wsgi``` - Enables wsgi  
+We also need to disable the default Apache page ```sudo a2dissite 000-default``` ```sudo service apache2 reload```
 
 ### Install git and clone the Catalog App
 
-* 
+* ```sudo apt-get install git``` - install git
+* ```cd /var/www```
+* ```sudo mkdir catalog``` - this creates the file structure similar to Digital Ocean Tutorial (see resources).
+* ```sudo chown -R grader:grader catalog``` - changes owner to grader for the catalog folder
+* ```cd /catalog```
+* Clone the github repository ```git clone https://github.com/udacity-sq/Catalog-Application.git catalog```
+Now we need to make some changes to the cloned catalog files:
+* ```cd catalog``` to enter /var/www/catalog/catalog
+* Rename the Application.py file to __init__.py ```sudo mv Application.py __init__.py```
+* quite a few lines had to be modified in __init__.py file and they can be viewed from the included modified __init__.py file. Comments are added
+for clarity where changes were required. 
+
+### Install and configure the Virtual Environment
+* ```sudo apt-get install python3-pip``` - Installs pip
+* ```sudo apt-get install python-virtualenv```
+* ```cd /var/www/catalog/catalog```
+* ```sudo virtualenv -p python3 venv3```
+* ```sudo chown -R grader:grader venv3```
+Now activate the virtual environment
+* ```. venv3/bin/activate```
+Time to install project dependencies:
+* ```pip intsall flask``` ```pip install sqlalchemy``` ```pip install requests``` ```pip install --upgrade oauth2client```  
+```sudo apt-get install libpq-dev``` ```pip install psycopg2``` and the rest. 
+Once the dependencies are installed check to ensure that the __init__.py file works without any issues:
+* ```python3 __init__.py``` - fix any issues in the code till file works
+Close out the virtual environment
+* ```deactivate```
+
+### Setup the Flask Application
+* First we need to create catalog.wsgi file ```sudo nano /var/www/catalog/catalog.wsgi```
+```
+#!/usr/bin/python
+
+activate_this = '/var/www/catalog/catalog/venv3/bin/activate_this.py'
+with open(activate_this) as file_:
+    exec(file_.read(), dict(__file__=activate_this))
+
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0, "/var/www/catalog/")
+
+from catalog import app as application
+application.secret_key = "super_secret_key"
+``` 
+* Finally restart Apache ```sudo service apache2 restart```
+
+For the section below credit is due to user: fokaskostas(see resrouces section below). I couldn't find a way to better explain this section. 
+### Setting up and enabling the virtual host
+* Add the following line in /etc/apache2/mods-enabled/wsgi.conf file to use Python 3: ```#WSGIPythonPath directory|directory-1:directory-2:...```
+```WSGIPythonPath /var/www/catalog/catalog/venv3/lib/python3.5/site-packages```
+* Create /etc/apache2/sites-available/catalog.conf and add the following lines to configure the virtual host:
+```
+<VirtualHost *:80>
+                ServerName mywebsite.com
+                ServerAdmin admin@mywebsite.com
+                #location of the catalog.wsgi file
+                WSGIScriptAlias / /var/www/catalog/catalog.wsgi
+                #Allow Apache to serve the WSGI app from our catalog directory
+                <Directory /var/www/catalog/catalog/>
+                        Order allow,deny
+                        Allow from all
+                #Allow Apache to deploy static content
+                </Directory>
+                Alias /static /var/www/catalog/catalog/static
+                <Directory /var/www/catalog/catalog/static/>
+                        Order allow,deny
+                        Allow from all
+                </Directory>
+                ErrorLog ${APACHE_LOG_DIR}/error.log
+                LogLevel warn
+                CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+* Now to enable the catalog application ```sudo a2ensite catalog```
+* Finally restart Apache ```sudo service restart apache2 reload```
 
 ### Install and configure PostgreSQL
 The database used for the Catalog project is PostgreSQL DB. We now need to install & configure the database.
-*```sudo apt-get install postgresql``` 
-*```sudo su - postgres``` - login as user postgres  
-*```psql```  
-*```CREATE USER catalog WITH PASSWORD 'catalog';```  
-*```ALTER USER catalog CREATEDB;```  
-*```CREATE DATABASE catalog WITH OWNER catalog;```
-*```\c catalog``` - connect to database catalog
-*```REVOKE ALL ON SCHEMA public FROM public;```
-*```GRANT ALL ON SCHEMA public TO catalog;```
-*```\q``` - exit catalog database
-*```exit```
+* ```sudo apt-get install postgresql``` 
+* ```sudo su - postgres``` - login as user postgres  
+* ```psql```  
+* ```CREATE USER catalog WITH PASSWORD 'catalog';```  
+* ```ALTER USER catalog CREATEDB;```  
+* ```CREATE DATABASE catalog WITH OWNER catalog;```
+* ```\c catalog``` - connect to database catalog
+* ```REVOKE ALL ON SCHEMA public FROM public;```
+* ```GRANT ALL ON SCHEMA public TO catalog;```
+* ```\q``` - exit catalog database
+* ```exit```
 Now we need to update the __init__.py, database_setup.py and createDbCatalog.py files with the following line:
 ```create_engine('postgresql://catalog:catalog@localhost/catalog')```
 In order to create and populate the Catalog database run the following commands:
-*```python /var/www/catalog/catalog/database_setup.py```
-*```
+* ```cd /var/www/catalog/catalog```
+* ```.venv3/bin/activate```
+* ```python database_setup.py```
+* ```python createDbCatalog.py```. A message should display that the database has been popluated.
+* ```deactivate``` - closes the virutal environment
 
+### Last step is to configure Google Login and Authentication
+* Login to the [Google Cloud Platform](https://console.cloud.google.com/)
+* Find the APIs->Credentials page and edit the Catalog App
+* Under Authorized Javascript Origins, redirect URIs add ```http://18.219.168.254.xip.io```
+* Also under Authroized redirect URIs add ```http://18.219.168.254.xip.io/gconnect``` ```http://18.219.168.254.xip.io/login``` ```http://18.219.168.254.xip.io/disconnect```
+Now download a copy of the client_secrets.json and copy contents. Then paste the contents in the ```cd /var/www/catalog/catalog/client_secrts.json```. 
+* ```sudo service apache2 restart```
+* The site is now live at [http://18.219.168.254.xip.io](http://18.219.168.254.xip.io)
+
+### General Debugging Tips:
+There were plenty of things that can go wrong and did go wrong for me. Ensure the following:
+* Install the same version of python as your codebase. 
+* Check to see that the code runs fine in the virtual evnironment.
+* The following command is your best friend ```sudo tail /var/log/apache2/error.log```. The apache2 error log really helps to debug.
+* Persistance pays dividends! Look for similar issues other users have faced. Review the Udacity forums and don't forget to reach out to your mentor.
 
 
 # Resources:
-* SQL Alchemy -[Documentation](https://www.sqlalchemy.org/)
-* Full Stack Foundations Course - [here](https://classroom.udacity.com/nanodegrees/nd004/parts/8d3e23e1-9ab6-47eb-b4f3-d5dc7ef27bf0/modules/348776022975462/lessons/3487760229239847/concepts/36310386700923)
-* Udacity - Authentication and Authorization Course [here](https://classroom.udacity.com/courses/ud330)
-* Udacity Full Stack Developer Forum - [here](https://discussions.udacity.com/c/nd004-full-stack-broadcast)
+* Digital Oceans - [How to Deploy A Flask Application on an Ubuntu VPS](https://www.digitalocean.com/community/tutorials/how-to-deploy-a-flask-application-on-an-ubuntu-vps)
+* Udacity Forums - [Discussion Forum] (https://discussions.udacity.com/)
+* Git Repository - [callforsky/udacity-linux-configuration](https://github.com/callforsky/udacity-linux-configuration/blob/master/README.md)
+* Git Repository - [rrjoson/udacity-linux-server-configuration](https://github.com/rrjoson/udacity-linux-server-configuration/blob/master/README.md)
+* Git Repository - [fokaskostas/Linux-Server-Configuration](https://github.com/fokaskostas/Linux-Server-Configuration)
+* Git Repository - [boisalai/udacity-linux-server-configuration](https://github.com/boisalai/udacity-linux-server-configuration)
+* Stackoverflow  - [Flask ImportErrorL No Module Named Flask](https://stackoverflow.com/questions/31252791/flask-importerror-no-module-named-flask/44690276)
+* Askubuntu.com - [Apache not able to restart](https://askubuntu.com/questions/629995/apache-not-able-to-restart)
+* 1&1 Interner Inc. - [How to fix 500 internal server error](https://www.1and1.com/cloud-community/learn/web-server/server-management/how-to-fix-http-error-code-500-internal-server-error/)
