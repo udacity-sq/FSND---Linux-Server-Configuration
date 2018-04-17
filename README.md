@@ -50,7 +50,7 @@ disconnect from Lightsails server & log back in using the grader account:
 Follow the next few steps to secure the server:  
 * ```sudo nano /etc/ssh/sshd_config```  
 Update the following lines:  
-* PassowrdAuthentication ```no```  
+* PasswordAuthentication ```no```  
 * port ```2200``` - update port with new value  
 * PermitRootLogin ```no```  
 * ```sudo service ssh restart```   
