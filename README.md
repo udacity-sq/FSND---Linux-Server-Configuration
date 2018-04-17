@@ -52,7 +52,7 @@ Follow the next few steps to secure the server:
 Update the following lines:  
 * PassowrdAuthentication ```no```  
 * port ```2200``` - update port with new value  
-* PermitRoolLogin ```no```  
+* PermitRootLogin ```no```  
 * ```sudo service ssh restart```   
 
 Finally we need to configure Firewall:  
