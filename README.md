@@ -73,7 +73,7 @@ The steps above conclude setting up the linux server instance with grader accoun
 We can test to ensure that Apache has been installed correctly by going to public ip page and seeing the Apache2 Ubuntu page
 
 Since the Catalog Application was built using python3 we need to install the Python 3 mod_wsgi package
-* ```udo apt-get install libapache2-mod-wsgi-py3```
+* ```sudo apt-get install libapache2-mod-wsgi-py3```
 * ```sudo en2smod wsgi``` - Enables wsgi  
 We also need to disable the default Apache page ```sudo a2dissite 000-default``` ```sudo service apache2 reload```
 
