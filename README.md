@@ -197,7 +197,7 @@ There were plenty of things that can go wrong and did go wrong for me. Ensure th
 
 # Resources:
 * Digital Oceans - [How to Deploy A Flask Application on an Ubuntu VPS](https://www.digitalocean.com/community/tutorials/how-to-deploy-a-flask-application-on-an-ubuntu-vps)
-* Udacity Forums - [Discussion Forum] (https://discussions.udacity.com/)
+* Udacity Forums - [Discussion Forum](https://discussions.udacity.com/)
 * Git Repository - [callforsky/udacity-linux-configuration](https://github.com/callforsky/udacity-linux-configuration/blob/master/README.md)
 * Git Repository - [rrjoson/udacity-linux-server-configuration](https://github.com/rrjoson/udacity-linux-server-configuration/blob/master/README.md)
 * Git Repository - [fokaskostas/Linux-Server-Configuration](https://github.com/fokaskostas/Linux-Server-Configuration)
